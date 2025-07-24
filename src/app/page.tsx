@@ -1,103 +1,133 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useArticles } from "@/hooks/api/useArticles";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import NewsListCard from "@/components/NewsListCard";
+import { useEffect, useState } from "react";
+// Cyber Futurism background component
+function CyberBackground() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="fixed inset-0 z-0 pointer-events-none">
+      {/* Dark cyber gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-950 to-purple-900" />
+      {/* Animated grid overlay */}
+      <div
+        className="absolute inset-0 opacity-20"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(0,234,255,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(0,234,255,0.12) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          animation: "gridMove 20s linear infinite"
+        }}
+      />
+      {/* Floating cyber particles - only render on client */}
+      {isClient && (
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(18)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-cyan-400 rounded-full opacity-60 blur-sm"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animation: `floaty ${3 + Math.random() * 4}s ease-in-out infinite`,
+                animationDelay: `${Math.random() * 2}s`
+              }}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          ))}
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
+      <style jsx>{`
+        @keyframes gridMove {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(48px, 48px); }
+        }
+        @keyframes floaty {
+          0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
+          50% { transform: translateY(-24px) scale(1.2); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }
+
+export default function Home() {
+  const { data: articles = [], isLoading } = useArticles();
+
+  // Dummy data jika tidak ada artikel dari API
+  const dummyArticles = [
+    {
+      id: "1",
+      title: "Jurusan RPL: Masa Depan Digital",
+      content:
+        "Rekayasa Perangkat Lunak (RPL) adalah jurusan yang mempelajari pengembangan aplikasi, algoritma, dan arsitektur perangkat lunak. Siswa akan dibekali dengan kemampuan coding, software engineering, dan pengembangan aplikasi web maupun mobile.",
+      published: true,
+      viewCount: 120,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "2",
+      title: "Keunggulan Jurusan RPL di Era Industri 4.0",
+      content:
+        "Jurusan RPL sangat relevan di era digital saat ini. Lulusan RPL dibutuhkan di berbagai industri untuk membangun sistem informasi, aplikasi mobile, dan solusi digital lainnya.",
+      published: false,
+      viewCount: 45,
+      createdAt: new Date().toISOString(),
+    },
+  ];
+  const displayArticles = articles.length === 0 ? dummyArticles : articles;
+
+  return (
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <CyberBackground />
+      <Navbar />
+      <main className="flex-1 w-full max-w-4xl mx-auto pt-32 pb-16 px-4 relative z-10">
+        {isLoading ? (
+          <div className="text-center text-cyan-400 py-16">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+            <p className="mt-4 text-lg">Memuat berita...</p>
+          </div>
+        ) : displayArticles.length === 0 ? (
+          <div className="text-center py-16">
+            <h1 className="text-4xl font-bold text-white mb-4 font-orbitron neon-glow">
+              Belum Ada Berita
+            </h1>
+            <p className="text-lg text-cyan-300">
+              Berita akan muncul di sini setelah admin mengupload melalui dashboard.
+            </p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-8">
+            {displayArticles.map((article: any) => (
+              <NewsListCard
+                key={article.id}
+                id={article.id}
+                title={article.title}
+                content={article.content}
+                date={new Date(article.createdAt).toLocaleDateString()}
+                time={new Date(article.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                imageUrl={article.imageUrl || ""}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+      <Footer />
+      <style jsx global>{`
+        .font-orbitron {
+          font-family: 'Orbitron', 'Audiowide', 'sans-serif';
+        }
+        .neon-glow {
+          text-shadow: 0 0 8px #00eaff, 0 0 16px #00eaff, 0 0 32px #00eaff;
+        }
+      `}</style>
+    </div>
+  );
+} 
