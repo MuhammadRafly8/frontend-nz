@@ -1,5 +1,5 @@
+// app/admin/dashboard/page.tsx
 'use client';
-
 import { useState } from 'react';
 import { useArticles, useCreateArticle, useUpdateArticle, useDeleteArticle } from '@/hooks/api/useArticles';
 import { useCategories } from '@/hooks/api/useCategories';
@@ -19,6 +19,19 @@ interface Article {
   viewCount: number;
   createdAt: string;
   categoryId?: string;
+  image?: string; // Tambahkan field image
+  authorId: string;
+  slug: string;
+  publishedAt: string | null;
+  updatedAt: string;
+  author?: {
+    id: string;
+    name: string;
+  };
+  category?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface ArticleForm {
@@ -27,11 +40,12 @@ interface ArticleForm {
   content: string;
   published: boolean;
   image?: File | null;
+  categoryId?: string;
 }
 
 export default function DashboardPage() {
   const { data: articles = [], isLoading } = useArticles();
-  const { data: categories = [] } = useCategories();
+  useCategories();
   const createArticle = useCreateArticle();
   const updateArticle = useUpdateArticle();
   const deleteArticle = useDeleteArticle();
@@ -46,41 +60,43 @@ export default function DashboardPage() {
     formData.append('title', data.title);
     formData.append('content', data.content);
     formData.append('published', data.published ? 'true' : 'false');
+    if (data.categoryId) formData.append('categoryId', data.categoryId);
     if (data.image) formData.append('image', data.image);
+    
     if (data.id) {
-      updateArticle.mutate({ id: data.id, article: formData }, { onSuccess: () => setFormOpen(false) });
+      updateArticle.mutate({ id: data.id, article: formData }, { 
+        onSuccess: () => {
+          setFormOpen(false);
+          setEditData(null);
+        },
+        onError: (error) => {
+          console.error("Error updating article:", error);
+          alert("Gagal memperbarui artikel");
+        }
+      });
     } else {
-      createArticle.mutate(formData, { onSuccess: () => setFormOpen(false) });
+      createArticle.mutate(formData, { 
+        onSuccess: () => setFormOpen(false),
+        onError: (error) => {
+          console.error("Error creating article:", error);
+          alert("Gagal membuat artikel baru");
+        }
+      });
     }
   };
 
   // Handle delete
   const handleDelete = () => {
     if (deleteData) {
-      deleteArticle.mutate(deleteData.id, { onSuccess: () => setDeleteData(null) });
+      deleteArticle.mutate(deleteData.id, { 
+        onSuccess: () => setDeleteData(null),
+        onError: (error) => {
+          console.error("Error deleting article:", error);
+          alert("Gagal menghapus artikel");
+        }
+      });
     }
   };
-
-  // Dummy data jika tidak ada artikel dari API
-  const dummyArticles: Article[] = [
-    {
-      id: '1',
-      title: 'Jurusan RPL: Masa Depan Digital',
-      content: 'Rekayasa Perangkat Lunak (RPL) adalah jurusan yang mempelajari pengembangan aplikasi, algoritma, dan arsitektur perangkat lunak. Siswa akan dibekali dengan kemampuan coding, software engineering, dan pengembangan aplikasi web maupun mobile.',
-      published: true,
-      viewCount: 120,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: '2',
-      title: 'Keunggulan Jurusan RPL di Era Industri 4.0',
-      content: 'Jurusan RPL sangat relevan di era digital saat ini. Lulusan RPL dibutuhkan di berbagai industri untuk membangun sistem informasi, aplikasi mobile, dan solusi digital lainnya.',
-      published: false,
-      viewCount: 45,
-      createdAt: new Date().toISOString(),
-    },
-  ];
-  const displayArticles = articles.length === 0 ? dummyArticles : articles;
 
   if (isLoading) {
     return (
@@ -100,6 +116,7 @@ export default function DashboardPage() {
           Manajemen User
         </Link>
       </div>
+      
       {/* Statistik Card */}
       <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
         <Card>
@@ -125,7 +142,10 @@ export default function DashboardPage() {
       {/* Tombol Tambah Berita */}
       <div className="flex justify-end mb-4">
         <button
-          onClick={() => { setEditData(null); setFormOpen(true); }}
+          onClick={() => { 
+            setEditData(null); 
+            setFormOpen(true); 
+          }}
           className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-lg hover:scale-105 transition"
         >
           + Tambah Berita
@@ -134,7 +154,7 @@ export default function DashboardPage() {
 
       {/* Tabel Berita */}
       <NewsTable
-        articles={displayArticles.map((a: Article) => ({
+        articles={articles.map((a: Article) => ({
           id: a.id,
           title: a.title,
           published: a.published,
@@ -142,19 +162,19 @@ export default function DashboardPage() {
           createdAt: a.createdAt,
         }))}
         onEdit={(article) => {
-          const full = displayArticles.find((a: Article) => String(a.id) === String(article.id));
+          const full = articles.find((a: Article) => String(a.id) === String(article.id));
           if (!full) return;
           setEditData({
             id: full.id,
             title: full.title,
             content: full.content,
             published: full.published,
-            // categoryId: full.categoryId, // dihapus karena tidak dipakai
+            categoryId: full.categoryId,
           });
           setFormOpen(true);
         }}
         onDelete={(article) => {
-          const full = displayArticles.find((a: Article) => String(a.id) === String(article.id));
+          const full = articles.find((a: Article) => String(a.id) === String(article.id));
           if (full) setDeleteData(full);
         }}
       />
@@ -171,7 +191,7 @@ export default function DashboardPage() {
       <ConfirmDialog
         open={!!deleteData}
         title="Hapus Berita"
-        description={`Yakin ingin menghapus berita \"${deleteData?.title}\"?`}
+        description={`Yakin ingin menghapus berita "${deleteData?.title}"?`}
         onCancel={() => setDeleteData(null)}
         onConfirm={handleDelete}
       />

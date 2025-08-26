@@ -1,18 +1,24 @@
-import axios from 'axios';
+// lib/axios.ts
+import axios, { AxiosInstance } from 'axios';
+import { API_BASE_URL } from '@/lib/api';
 
-const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+// Buat instance axios dengan baseURL
+const apiClient: AxiosInstance = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 // Interceptor untuk menambahkan token
-api.interceptors.request.use(
+apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Cek di browser environment
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -21,4 +27,4 @@ api.interceptors.request.use(
   }
 );
 
-export default api;
+export default apiClient;

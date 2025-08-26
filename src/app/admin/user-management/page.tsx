@@ -1,57 +1,134 @@
-"use client";
-
+'use client';
 import { useState } from "react";
+import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, type User } from '@/hooks/api/useUsers';
 import Card from "@/components/Card";
 import Title from "@/components/Title";
 import Text from "@/components/Text";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "editor" | "user";
-  avatar?: string;
-}
-
-const dummyUsers: User[] = [
-  { id: "1", name: "Admin Satu", email: "admin1@email.com", role: "admin" },
-  { id: "2", name: "Editor Dua", email: "editor2@email.com", role: "editor" },
-  { id: "3", name: "User Tiga", email: "user3@email.com", role: "user" },
-];
+// Tipe untuk form state (tanpa id dan createdAt, tambah password untuk create)
+type UserFormState = Omit<User, 'id' | 'createdAt'> & {
+  id?: string; // Untuk edit
+  password?: string; // Untuk create
+};
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>(dummyUsers);
+  const { data: users = [], isLoading, isError } = useUsers();
+  const createUserMutation = useCreateUser();
+  const updateUserMutation = useUpdateUser();
+  const deleteUserMutation = useDeleteUser();
+
   const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState<User | null>(null);
   const [deleteData, setDeleteData] = useState<User | null>(null);
-  const [form, setForm] = useState<User>({ id: '', name: '', email: '', role: 'user' });
+  
+  // State untuk form
+  const [form, setForm] = useState<UserFormState>({ 
+    name: '', 
+    email: '', 
+    role: 'user',
+    avatar: null,
+    password: '' // Hanya untuk create
+  });
 
-  const openForm = (user?: User | null) => {
+  const openForm = (user: User | null = null) => {
     if (user) {
-      setForm(user);
+      // Untuk edit, jangan sertakan password
+      setForm({ 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role,
+        avatar: user.avatar
+      });
       setEditData(user);
     } else {
-      setForm({ id: '', name: '', email: '', role: 'user' });
+      // Untuk create, reset semua field
+      setForm({ 
+        name: '', 
+        email: '', 
+        role: 'user',
+        avatar: null,
+        password: '' 
+      });
       setEditData(null);
     }
     setFormOpen(true);
   };
 
-  const handleSubmit = (data: User) => {
-    if (data.id) {
-      setUsers((prev) => prev.map((u) => (u.id === data.id ? data : u)));
+  const handleSubmit = () => {
+    if (editData && form.id) {
+      // Update existing user (tanpa password)
+      const { id, name, email, role, avatar } = form;
+      updateUserMutation.mutate(
+        { id, userData: { name, email, role } }, // Avatar biasanya dihandle beda, kita abaikan dulu
+        {
+          onSuccess: () => {
+            setFormOpen(false);
+          },
+          onError: (error: any) => {
+            console.error("Gagal update user:", error);
+            alert(`Gagal update user: ${error.message || 'Terjadi kesalahan'}`);
+          }
+        }
+      );
     } else {
-      setUsers((prev) => [...prev, { ...data, id: String(Date.now()) }]);
+      // Create new user
+      if (!form.password) {
+        alert("Password wajib diisi untuk user baru!");
+        return;
+      }
+      
+      const { name, email, password, role } = form;
+      if (!password) {
+        alert("Password wajib diisi!");
+        return;
+      }
+      
+      createUserMutation.mutate(
+        { name, email, password, role },
+        {
+          onSuccess: () => {
+            setFormOpen(false);
+          },
+          onError: (error: any) => {
+            console.error("Gagal tambah user:", error);
+            alert(`Gagal tambah user: ${error.message || 'Terjadi kesalahan'}`);
+          }
+        }
+      );
     }
-    setFormOpen(false);
   };
 
   const handleDelete = () => {
     if (deleteData) {
-      setUsers((prev) => prev.filter((u) => u.id !== deleteData.id));
-      setDeleteData(null);
+      deleteUserMutation.mutate(deleteData.id, {
+        onSuccess: () => {
+          setDeleteData(null);
+        },
+        onError: (error: any) => {
+          console.error("Gagal hapus user:", error);
+          alert(`Gagal hapus user: ${error.message || 'Terjadi kesalahan'}`);
+        }
+      });
     }
   };
+
+  // --- Tambahkan penanganan loading dan error ---
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-gray-500">Loading users...</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p className="text-red-500">Gagal memuat data user.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -74,7 +151,7 @@ export default function UserManagementPage() {
           <Text className="mt-2 text-3xl font-bold">{users.filter((u) => u.role === "user").length}</Text>
         </Card>
       </div>
-
+      
       {/* Tombol Tambah User */}
       <div className="flex justify-end mb-4">
         <button
@@ -84,7 +161,7 @@ export default function UserManagementPage() {
           + Tambah User
         </button>
       </div>
-
+      
       {/* Tabel User */}
       <div className="overflow-x-auto rounded-xl shadow-lg bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-md">
         <table className="min-w-full text-sm text-gray-200">
@@ -102,28 +179,51 @@ export default function UserManagementPage() {
                 <td className="px-6 py-4 font-semibold">{user.name}</td>
                 <td className="px-6 py-4">{user.email}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${user.role === "admin" ? "bg-green-600/80 text-white" : user.role === "editor" ? "bg-blue-500/80 text-white" : "bg-yellow-500/80 text-gray-900"}`}>{user.role}</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                    user.role === "admin" ? "bg-green-600/80 text-white" : 
+                    user.role === "editor" ? "bg-blue-500/80 text-white" : 
+                    "bg-yellow-500/80 text-gray-900"
+                  }`}>
+                    {user.role}
+                  </span>
                 </td>
                 <td className="px-6 py-4 flex gap-2 justify-center">
-                  <button onClick={() => openForm(user)} className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow transition">Edit</button>
-                  <button onClick={() => setDeleteData(user)} className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold shadow transition">Hapus</button>
+                  <button 
+                    onClick={() => openForm(user)} 
+                    className="px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow transition"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => setDeleteData(user)} 
+                    className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold shadow transition"
+                  >
+                    Hapus
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-
+      
       {/* Form Tambah/Edit User */}
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 p-8 rounded-2xl shadow-2xl w-full max-w-lg relative">
-            <button onClick={() => setFormOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">&times;</button>
-            <h2 className="text-2xl font-bold mb-6 text-white">{editData ? "Edit User" : "Tambah User"}</h2>
+            <button 
+              onClick={() => setFormOpen(false)} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl"
+            >
+              &times;
+            </button>
+            <h2 className="text-2xl font-bold mb-6 text-white">
+              {editData ? "Edit User" : "Tambah User"}
+            </h2>
             <form
-              onSubmit={e => {
+              onSubmit={(e) => {
                 e.preventDefault();
-                handleSubmit(form);
+                handleSubmit();
               }}
               className="space-y-4"
             >
@@ -144,14 +244,28 @@ export default function UserManagementPage() {
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   required
+                  disabled={!!editData} // Email tidak bisa diubah saat edit
                 />
               </div>
+              {/* Field Password hanya untuk user baru */}
+              {!editData && (
+                <div>
+                  <label className="block text-gray-300 mb-1">Password</label>
+                  <input
+                    type="password"
+                    className="w-full px-4 py-2 rounded-lg bg-gray-700/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={form.password || ''}
+                    onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                    required={!editData}
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-gray-300 mb-1">Role</label>
                 <select
                   className="w-full px-4 py-2 rounded-lg bg-gray-700/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.role}
-                  onChange={e => setForm(f => ({ ...f, role: e.target.value as User["role"] }))}
+                  onChange={e => setForm(f => ({ ...f, role: e.target.value as "admin" | "editor" | "user" }))}
                   required
                 >
                   <option value="admin">Admin</option>
@@ -160,27 +274,51 @@ export default function UserManagementPage() {
                 </select>
               </div>
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setFormOpen(false)} className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-bold">Batal</button>
-                <button type="submit" className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow">{editData ? "Simpan" : "Tambah"}</button>
+                <button 
+                  type="button" 
+                  onClick={() => setFormOpen(false)} 
+                  className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-bold"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold shadow"
+                  disabled={createUserMutation.isPending || updateUserMutation.isPending}
+                >
+                  {(createUserMutation.isPending || updateUserMutation.isPending) ? 'Menyimpan...' : (editData ? "Simpan" : "Tambah")}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
-
+      
       {/* Konfirmasi Hapus */}
       {deleteData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 p-8 rounded-2xl shadow-2xl w-full max-w-sm relative">
             <h3 className="text-xl font-bold text-white mb-2">Hapus User</h3>
-            <p className="text-gray-300 mb-6">Yakin ingin menghapus user "{deleteData.name}"?</p>
+            <p className="text-gray-300 mb-6">Yakin ingin menghapus user {deleteData.name}?</p>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setDeleteData(null)} className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-bold">Batal</button>
-              <button onClick={handleDelete} className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold shadow">Hapus</button>
+              <button 
+                onClick={() => setDeleteData(null)} 
+                className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white font-bold"
+                disabled={deleteUserMutation.isPending}
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleDelete} 
+                className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold shadow"
+                disabled={deleteUserMutation.isPending}
+              >
+                {deleteUserMutation.isPending ? 'Menghapus...' : 'Hapus'}
+              </button>
             </div>
           </div>
         </div>
       )}
     </div>
   );
-} 
+}
