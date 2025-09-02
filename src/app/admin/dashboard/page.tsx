@@ -1,6 +1,6 @@
 // app/admin/dashboard/page.tsx
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useArticles, useCreateArticle, useUpdateArticle, useDeleteArticle } from '@/hooks/api/useArticles';
 import { useCategories } from '@/hooks/api/useCategories';
 import NewsTable from './NewsTable';
@@ -44,8 +44,8 @@ interface ArticleForm {
 }
 
 export default function DashboardPage() {
-  const { data: articles = [], isLoading } = useArticles();
-  useCategories();
+  const { data: articlesData, isLoading } = useArticles({ published: undefined }); // Get all articles including unpublished
+  const { data: categoriesData } = useCategories();
   const createArticle = useCreateArticle();
   const updateArticle = useUpdateArticle();
   const deleteArticle = useDeleteArticle();
@@ -53,6 +53,9 @@ export default function DashboardPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState<ArticleForm | null>(null);
   const [deleteData, setDeleteData] = useState<Article | null>(null);
+
+  // Extract articles from the API response
+  const articles = articlesData?.data || [];
 
   // Handle submit form (create or update)
   const handleSubmit = (data: ArticleForm) => {
@@ -98,6 +101,8 @@ export default function DashboardPage() {
     }
   };
 
+  const publishedArticles = articles.filter(a => a.published);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -125,7 +130,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <Title>Artikel Publik</Title>
-          <Text className="mt-2 text-3xl font-bold">{articles.filter((a: Article) => a.published).length}</Text>
+          <Text className="mt-2 text-3xl font-bold">{publishedArticles.length}</Text>
         </Card>
         <Card>
           <Title>Draft</Title>

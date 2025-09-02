@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useUsers } from '@/hooks/api/useUsers';
+import { useCategories } from '@/hooks/api/useCategories';
 import { useAuth } from '@/hooks/useAuth';
 
 interface AuthUser {
@@ -14,7 +15,7 @@ interface ArticleForm {
   content: string;
   published: boolean;
   image?: File | null;
-  writerId?: string;
+  categoryId?: string;
 }
 
 interface NewsFormProps {
@@ -30,16 +31,15 @@ const NewsForm: React.FC<NewsFormProps> = ({ open, initialData, onClose, onSubmi
     content: '',
     published: false,
     image: null,
-    writerId: '',
+    categoryId: '',
   });
-  const { data: users = [] } = useUsers();
+  const { data: categories = [] } = useCategories();
   const { user } = useAuth();
   const authUser = (user && typeof user === 'object' && 'id' in user && 'role' in user) ? user as AuthUser : null;
 
   useEffect(() => {
     if (initialData) setForm({ ...initialData, image: null });
-    else if (authUser && authUser.role === 'writer') setForm({ title: '', content: '', published: false, image: null, writerId: authUser.id });
-    else setForm({ title: '', content: '', published: false, image: null, writerId: '' });
+    else setForm({ title: '', content: '', published: false, image: null, categoryId: '' });
   }, [initialData, open, authUser]);
 
   if (!open) return null;
@@ -84,17 +84,16 @@ const NewsForm: React.FC<NewsFormProps> = ({ open, initialData, onClose, onSubmi
             />
           </div>
           <div>
-            <label className="block text-gray-300 mb-1">Penulis (Writer)</label>
+            <label className="block text-gray-300 mb-1">Kategori</label>
             <select
               className="w-full px-4 py-2 rounded-lg bg-gray-700/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={form.writerId}
-              onChange={e => setForm(f => ({ ...f, writerId: e.target.value }))}
+              value={form.categoryId}
+              onChange={e => setForm(f => ({ ...f, categoryId: e.target.value }))}
               required
-              disabled={!!authUser && authUser.role === 'writer'}
             >
-              <option value="">Pilih Writer</option>
-              {users.filter((u: any) => u.role === 'writer' || u.role === 'admin').map((u: any) => (
-                <option key={u.id} value={u.id}>{u.name} ({u.role})</option>
+              <option value="">Pilih Kategori</option>
+              {categories.map((category: any) => (
+                <option key={category.id} value={category.id}>{category.name}</option>
               ))}
             </select>
           </div>

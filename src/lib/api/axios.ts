@@ -27,4 +27,19 @@ apiClient.interceptors.request.use(
   }
 );
 
+// Response interceptor untuk handle errors
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear token and redirect to login
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        window.location.href = '/admin/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default apiClient;
