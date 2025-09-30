@@ -4,10 +4,9 @@ import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
-import CyberBackground from '@/bg/CyberBackground';
 import api from '@/lib/api/axios';
+import { getImageUrl } from '@/lib/utils/imageUrl';
+import Image from 'next/image';
 
 interface Article {
   id: string;
@@ -30,21 +29,6 @@ interface Article {
     name: string;
     slug: string;
   };
-}
-
-// 3D background component
-function Dummy3D() {
-  return (
-    <Canvas camera={{ position: [0, 0, 3] }} style={{ width: '100%', height: 320 }}>
-      <ambientLight intensity={0.7} />
-      <pointLight position={[5, 5, 5]} intensity={1.2} />
-      <mesh rotation={[0.5, 0.5, 0]}>
-        <boxGeometry args={[1.8, 1.8, 1.8]} />
-        <meshStandardMaterial color="#00eaff" metalness={0.7} roughness={0.2} emissive="#00eaff" emissiveIntensity={0.5} />
-      </mesh>
-      <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
-    </Canvas>
-  );
 }
 
 export default function BeritaDetailPage() {
@@ -89,19 +73,15 @@ export default function BeritaDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-900 relative overflow-hidden">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <CyberBackground />
-        </div>
+      <div className="min-h-screen flex flex-col bg-pink-100 relative overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none"></div>
         <Navbar />
         <main className="flex-1 w-full max-w-3xl mx-auto pt-32 pb-16 px-4 relative z-10">
-          <div className="bg-white/20 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-400/30 p-8">
-            <div className="animate-pulse">
-              <div className="h-80 bg-gray-600 rounded-xl mb-8"></div>
-              <div className="h-8 bg-gray-600 rounded mb-4"></div>
-              <div className="h-4 bg-gray-600 rounded mb-2"></div>
-              <div className="h-4 bg-gray-600 rounded w-3/4"></div>
-            </div>
+          <div className="bg-white rounded-2xl shadow-md border border-pink-200 p-8 animate-pulse">
+            <div className="h-80 bg-pink-200 rounded-xl mb-8"></div>
+            <div className="h-8 bg-pink-200 rounded mb-4"></div>
+            <div className="h-4 bg-pink-200 rounded mb-2"></div>
+            <div className="h-4 bg-pink-200 rounded w-3/4"></div>
           </div>
         </main>
         <Footer />
@@ -111,10 +91,8 @@ export default function BeritaDetailPage() {
 
   if (error || !article) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-900 relative overflow-hidden">
-        <div className="absolute inset-0 z-0 pointer-events-none">
-          <CyberBackground />
-        </div>
+      <div className="min-h-screen flex flex-col bg-pink-100 relative overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none"></div>
         <Navbar />
         <main className="flex-1 w-full max-w-3xl mx-auto pt-32 pb-16 px-4 relative z-10">
           <div className="text-center text-red-400 py-16">
@@ -129,35 +107,39 @@ export default function BeritaDetailPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-900 relative overflow-hidden">
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <CyberBackground />
-      </div>
+    <div className="min-h-screen flex flex-col bg-pink-100 relative overflow-hidden">
+      <div className="absolute inset-0 z-0 pointer-events-none"></div>
       <Navbar />
       <main className="flex-1 w-full max-w-3xl mx-auto pt-32 pb-16 px-4 relative z-10">
-        <div className="bg-white/20 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-400/30 p-8">
-          {/* Article Image */}
+        <div className="bg-white rounded-2xl shadow-lg border border-pink-200 p-8">
+          {/* Article Image - menggunakan Next.js Image */}
           <div className="w-full flex justify-center mb-8">
-            {article.image ? (
-              <img 
-                src={`http://localhost:5000/uploads/${article.image}`} 
-                alt={article.title} 
-                className="object-cover rounded-xl max-h-80 w-full"
+            {article.image && (
+              <Image
+                src={getImageUrl(article.image) || '/placeholder-image.jpg'}
+                alt={article.title}
+                width={1000}
+                height={600}
+                className="object-cover rounded-xl w-full max-h-80"
+                onError={(e) => {
+                  console.warn('Failed to load image:', article.image);
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                }}
+                priority
               />
-            ) : (
-              <Dummy3D />
             )}
           </div>
 
           {/* Article Header */}
           <div className="mb-6">
             {article.category && (
-              <span className="inline-block px-3 py-1 bg-cyan-500/20 text-cyan-400 text-sm font-semibold rounded-full mb-4">
+              <span className="inline-block px-3 py-1 bg-pink-100 text-pink-600 text-sm font-semibold rounded-full mb-4">
                 {article.category.name}
               </span>
             )}
             
-            <h1 className="text-4xl font-extrabold font-orbitron text-blue-900 mb-4 neon-glow">
+            <h1 className="text-4xl font-extrabold font-orbitron text-pink-700 mb-4 neon-glow">
               {article.title}
             </h1>
             
@@ -176,17 +158,17 @@ export default function BeritaDetailPage() {
 
           {/* Article Content */}
           <div className="prose prose-lg max-w-none">
-            <div className="text-gray-800 text-lg font-medium drop-shadow-lg whitespace-pre-line leading-relaxed">
+            <div className="text-gray-800 text-lg font-medium drop-shadow-sm whitespace-pre-line leading-relaxed">
               {article.content}
             </div>
           </div>
 
           {/* Article Footer */}
-          <div className="mt-8 pt-6 border-t border-gray-300/30">
+          <div className="mt-8 pt-6 border-t border-pink-200">
             <div className="flex items-center justify-between text-sm text-gray-600">
               <span>Dipublikasikan: {formatDate(article.publishedAt || article.createdAt)}</span>
               {article.featured && (
-                <span className="px-3 py-1 bg-yellow-500/20 text-yellow-600 rounded-full font-semibold">
+                <span className="px-3 py-1 bg-pink-200 text-pink-700 rounded-full font-semibold">
                   ⭐ Featured
                 </span>
               )}
@@ -201,7 +183,7 @@ export default function BeritaDetailPage() {
           font-family: 'Orbitron', 'Audiowide', 'sans-serif';
         }
         .neon-glow {
-          text-shadow: 0 0 8px #00eaff, 0 0 16px #00eaff, 0 0 32px #00eaff;
+          text-shadow: 0 0 8px #ffb6d5, 0 0 16px #ffb6d5, 0 0 32px #ffb6d5;
         }
       `}</style>
     </div>

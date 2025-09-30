@@ -100,38 +100,27 @@ export function useArticleStats() {
 }
 
 // Create article
-export function useCreateArticle() {
+export const useCreateArticle = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (article: FormData) => {
-      const { data } = await api.post('/articles', article);
-      return data;
-    },
+    mutationFn: (formData: FormData) => api.post('/articles', formData), // ✅ Tanpa headers
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
-      queryClient.invalidateQueries({ queryKey: ['featured-articles'] });
-      queryClient.invalidateQueries({ queryKey: ['article-stats'] });
     },
   });
-}
+};
 
 // Update article
-export function useUpdateArticle() {
+export const useUpdateArticle = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ id, article }: { id: string; article: FormData }) => {
-      const { data } = await api.put(`/articles/${id}`, article);
-      return data;
-    },
+    mutationFn: ({ id, article }: { id: string; article: FormData }) =>
+      api.put(`/articles/${id}`, article), // ✅ Tanpa headers
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['articles'] });
-      queryClient.invalidateQueries({ queryKey: ['featured-articles'] });
-      queryClient.invalidateQueries({ queryKey: ['article-stats'] });
     },
   });
-}
+};
 
 // Delete article
 export function useDeleteArticle() {

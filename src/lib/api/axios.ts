@@ -1,19 +1,14 @@
 // lib/axios.ts
-import axios, { AxiosInstance } from 'axios';
-import { API_BASE_URL } from '@/lib/api';
+import axios from 'axios';
 
 // Buat instance axios dengan baseURL
-const apiClient: AxiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 // Interceptor untuk menambahkan token
 apiClient.interceptors.request.use(
   (config) => {
-    // Cek di browser environment
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
       if (token) {
@@ -27,12 +22,11 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor untuk handle errors
+// Response interceptor
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear token and redirect to login
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
         window.location.href = '/admin/login';

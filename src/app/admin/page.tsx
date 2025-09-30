@@ -4,22 +4,17 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 
-export default function AdminHome() {
+export default function AdminPage() {
   const { isAuthenticated } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    // Jika sudah login, langsung redirect ke dashboard
-    if (isAuthenticated) {
-      router.replace('/admin/dashboard')
-    } else {
+    if (!isAuthenticated) {
       router.replace('/admin/login')
+    } else {
+      router.replace('/admin/dashboard')
     }
   }, [isAuthenticated, router])
 
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <p className="text-gray-500">Mengalihkan ke halaman admin...</p>
-    </div>
-  )
+  return null
 }

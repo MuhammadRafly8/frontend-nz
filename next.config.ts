@@ -1,14 +1,16 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  async rewrites() {
-    return [
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
       {
-        source: '/api/:path*',
-        destination: 'http://localhost:5000/api/:path*',
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '5000',
+        pathname: '/uploads/**', // hanya /uploads, bukan /api/uploads
       },
-    ]
+    ],
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

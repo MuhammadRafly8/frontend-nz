@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getImageUrl } from '@/lib/utils/imageUrl';
 
 interface FeaturedNewsCardProps {
   id: string;
@@ -66,7 +67,7 @@ const FeaturedNewsCard: React.FC<FeaturedNewsCardProps> = ({
       <div className="h-48 relative overflow-hidden">
         {imageUrl && !imageLoadError ? (
           <Image
-            src={imageUrl}
+            src={getImageUrl(imageUrl) || imageUrl}
             alt={title}
             fill
             style={{ objectFit: 'cover' }}

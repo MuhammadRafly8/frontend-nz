@@ -1,18 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import CyberBackground from '@/bg/CyberBackground';
 import { useArticles } from '@/hooks/api/useArticles';
+import { getImageUrl } from '@/lib/utils/imageUrl';
+import Image from 'next/image';
 
 interface Article {
   id: string;
   title: string;
   slug: string;
   content: string;
-  image?: string;
+  image?: string; 
   published: boolean;
   featured: boolean;
   viewCount: number;
@@ -61,9 +62,8 @@ export default function BeritaPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col bg-gray-900 relative overflow-hidden">
+      <div className="min-h-screen flex flex-col bg-pink-600 relative overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none">
-          <CyberBackground />
         </div>
         <Navbar />
         <main className="flex-1 w-full max-w-6xl mx-auto pt-32 pb-16 px-4 relative z-10">
@@ -77,19 +77,16 @@ export default function BeritaPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-900 relative overflow-hidden">
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <CyberBackground />
-      </div>
+    <div className="min-h-screen flex flex-col bg-pink-100 relative overflow-hidden">
+      <div className="absolute inset-0 z-0 pointer-events-none"></div>
       <Navbar />
-      
       <main className="flex-1 w-full max-w-6xl mx-auto pt-32 pb-16 px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-extrabold font-orbitron text-white mb-4 neon-glow">
-            BERITA TERKINI
+          <h1 className="text-5xl font-extrabold font-orbitron text-pink-700 mb-4 neon-glow">
+            BERITA TERKINI SMKN 8 JEMBER
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto">
             Dapatkan informasi terbaru seputar teknologi, pendidikan, dan perkembangan dunia digital
           </p>
         </div>
@@ -102,13 +99,13 @@ export default function BeritaPage() {
               placeholder="Cari berita..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 bg-white/10 backdrop-blur-xl border border-blue-400/30 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="w-full px-4 py-3 bg-white border border-pink-300 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-400"
             />
           </div>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="px-4 py-3 bg-white/10 backdrop-blur-xl border border-blue-400/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            className="px-4 py-3 bg-white border border-pink-300 rounded-xl text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400"
           >
             <option value="">Semua Kategori</option>
             <option value="teknologi">Teknologi</option>
@@ -121,10 +118,10 @@ export default function BeritaPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white/10 backdrop-blur-xl rounded-2xl border border-blue-400/30 p-6 animate-pulse">
-                <div className="h-48 bg-gray-600 rounded-xl mb-4"></div>
-                <div className="h-4 bg-gray-600 rounded mb-2"></div>
-                <div className="h-4 bg-gray-600 rounded w-3/4"></div>
+              <div key={i} className="bg-white rounded-2xl border border-pink-200 p-6 shadow-md animate-pulse">
+                <div className="h-48 bg-gray-200 rounded-xl mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
               </div>
             ))}
           </div>
@@ -137,18 +134,24 @@ export default function BeritaPage() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {articles.map((article: Article) => (
+              {articles.map((article) => (
                 <Link
                   key={article.id}
                   href={`/berita/${article.slug}`}
-                  className="group bg-white/10 backdrop-blur-xl rounded-2xl border border-blue-400/30 p-6 hover:bg-white/20 hover:border-cyan-400/50 transition-all duration-300 hover:scale-105"
+                  className="group bg-white rounded-2xl border border-pink-200 p-6 shadow-md hover:shadow-lg hover:border-pink-400 transition-all duration-300 hover:scale-105"
                 >
-                  <div className="aspect-video bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl mb-4 overflow-hidden">
+                  <div className="aspect-video bg-gradient-to-br from-pink-200 to-pink-400 rounded-xl mb-4 overflow-hidden relative">
                     {article.image ? (
-                      <img
-                        src={`http://localhost:5000/uploads/${article.image}`}
+                      <Image
+                        src={getImageUrl(article.image) || '/placeholder-image.jpg'}
                         alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        onError={(e) => {
+                          console.warn('Failed to load image:', article.image);
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
@@ -159,16 +162,16 @@ export default function BeritaPage() {
                   
                   <div className="space-y-3">
                     {article.category && (
-                      <span className="inline-block px-3 py-1 bg-cyan-500/20 text-cyan-400 text-xs font-semibold rounded-full">
+                      <span className="inline-block px-3 py-1 bg-pink-100 text-pink-600 text-xs font-semibold rounded-full">
                         {article.category.name}
                       </span>
                     )}
                     
-                    <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors duration-200 line-clamp-2">
+                    <h3 className="text-lg font-bold text-pink-700 group-hover:text-pink-500 transition-colors duration-200 line-clamp-2">
                       {article.title}
                     </h3>
                     
-                    <p className="text-gray-300 text-sm line-clamp-3">
+                    <p className="text-gray-600 text-sm line-clamp-3">
                       {truncateContent(article.content)}
                     </p>
                     
@@ -187,19 +190,19 @@ export default function BeritaPage() {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 bg-white/10 backdrop-blur-xl border border-blue-400/30 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
+                  className="px-4 py-2 bg-white border border-pink-300 rounded-lg text-pink-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-200 transition-colors"
                 >
                   Sebelumnya
                 </button>
                 
-                <span className="px-4 py-2 text-white">
+                <span className="px-4 py-2 text-pink-700">
                   Halaman {currentPage} dari {totalPages}
                 </span>
                 
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="px-4 py-2 bg-white/10 backdrop-blur-xl border border-blue-400/30 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
+                  className="px-4 py-2 bg-white border border-pink-300 rounded-lg text-pink-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-pink-200 transition-colors"
                 >
                   Selanjutnya
                 </button>
@@ -208,15 +211,13 @@ export default function BeritaPage() {
           </>
         )}
       </main>
-      
       <Footer />
-      
       <style jsx global>{`
         .font-orbitron {
           font-family: 'Orbitron', 'Audiowide', 'sans-serif';
         }
         .neon-glow {
-          text-shadow: 0 0 8px #00eaff, 0 0 16px #00eaff, 0 0 32px #00eaff;
+          text-shadow: 0 0 8px #ffb6d5, 0 0 16px #ffb6d5, 0 0 32px #ffb6d5;
         }
         .line-clamp-2 {
           display: -webkit-box;

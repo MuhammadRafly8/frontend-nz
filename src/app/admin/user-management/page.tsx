@@ -156,17 +156,17 @@ export default function UserManagementPage() {
       <div className="flex justify-end mb-4">
         <button
           onClick={() => openForm(null)}
-          className="px-6 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-lg hover:scale-105 transition"
+          className="px-6 py-2 rounded-xl bg-gradient-to-r from-pink-600 to-pink-400 text-white font-bold shadow-lg hover:scale-105 transition"
         >
           + Tambah User
         </button>
       </div>
       
       {/* Tabel User */}
-      <div className="overflow-x-auto rounded-xl shadow-lg bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-md">
+      <div className="overflow-x-auto rounded-xl shadow-lg bg-gradient-to-br from-pink-400/80 to-pink-500/100 backdrop-blur-md">
         <table className="min-w-full text-sm text-gray-200">
           <thead>
-            <tr className="bg-gradient-to-r from-blue-700 to-purple-700 text-white">
+            <tr className="bg-gradient-to-r from-pink-400 to-pink-600 text-white">
               <th className="px-6 py-3 text-left">Nama</th>
               <th className="px-6 py-3 text-left">Email</th>
               <th className="px-6 py-3 text-left">Role</th>
@@ -175,7 +175,7 @@ export default function UserManagementPage() {
           </thead>
           <tbody>
             {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-700/40 transition">
+              <tr key={user.id} className="hover:bg-pink-200/40 transition">
                 <td className="px-6 py-4 font-semibold">{user.name}</td>
                 <td className="px-6 py-4">{user.email}</td>
                 <td className="px-6 py-4">
@@ -210,7 +210,7 @@ export default function UserManagementPage() {
       {/* Form Tambah/Edit User */}
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 p-8 rounded-2xl shadow-2xl w-full max-w-lg relative">
+          <div className="bg-gradient-to-br from-pink-400/90 to-pink-400/90 p-8 rounded-2xl shadow-2xl w-full max-w-lg relative">
             <button 
               onClick={() => setFormOpen(false)} 
               className="absolute top-4 right-4 text-gray-400 hover:text-white text-xl"
@@ -230,7 +230,7 @@ export default function UserManagementPage() {
               <div>
                 <label className="block text-gray-300 mb-1">Nama</label>
                 <input
-                  className="w-full px-4 py-2 rounded-lg bg-gray-700/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   required
@@ -240,7 +240,7 @@ export default function UserManagementPage() {
                 <label className="block text-gray-300 mb-1">Email</label>
                 <input
                   type="email"
-                  className="w-full px-4 py-2 rounded-lg bg-gray-700/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.email}
                   onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   required
@@ -253,7 +253,7 @@ export default function UserManagementPage() {
                   <label className="block text-gray-300 mb-1">Password</label>
                   <input
                     type="password"
-                    className="w-full px-4 py-2 rounded-lg bg-gray-700/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={form.password || ''}
                     onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                     required={!editData}
@@ -263,7 +263,7 @@ export default function UserManagementPage() {
               <div>
                 <label className="block text-gray-300 mb-1">Role</label>
                 <select
-                  className="w-full px-4 py-2 rounded-lg bg-gray-700/80 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={form.role}
                   onChange={e => setForm(f => ({ ...f, role: e.target.value as "admin" | "editor" | "user" }))}
                   required
