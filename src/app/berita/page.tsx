@@ -87,7 +87,7 @@ export default function BeritaPage() {
             BERITA TERKINI SMKN 8 JEMBER
           </h1>
           <p className="text-xl text-gray-700 max-w-2xl mx-auto">
-            Dapatkan informasi terbaru seputar teknologi, pendidikan, dan perkembangan dunia digital
+            Dapatkan informasi tentang Jurusan yang ada di SMKN 8 JEMBER
           </p>
         </div>
 
